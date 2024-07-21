@@ -1,15 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:health_manager/model/report_modal.dart'; // Ensure this is the correct path
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-class ReportsPage extends StatelessWidget {
+class ReportsPage extends StatefulWidget {
   final PageController pageController;
 
   ReportsPage({required this.pageController});
 
   @override
+  _ReportsPageState createState() => _ReportsPageState();
+}
+
+class _ReportsPageState extends State<ReportsPage> {
+  late Future<List<Report>> futureReports;
+  final ReportService reportService = ReportService();
+  List<Report> _reports = []; // Maintain the list of reports locally
+
+  @override
+  void initState() {
+    super.initState();
+    futureReports = reportService.fetchReports();
+    futureReports.then((reports) {
+      setState(() {
+        _reports = reports;
+      });
+    });
+  }
+
+  void _toggleVisibility(int reportId) {
+    setState(() {
+      _reports = _reports.map((report) {
+        if (report.id == reportId) {
+          return Report(
+            id: report.id,
+            title: report.title,
+            reportCreatedDate: report.reportCreatedDate,
+            isVisible: !report.isVisible,
+            createdAt: report.createdAt,
+            fileUrl: report.fileUrl,
+            
+          );
+        }
+        return report;
+      }).toList();
+    });
+    // Here you can also implement the API call to update the visibility status on the backend
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        pageController.jumpToPage(0); // Navigate back to HomePage
+        widget.pageController.jumpToPage(0); // Navigate back to HomePage
         return false; // Prevent default pop behavior
       },
       child: Scaffold(
@@ -17,7 +60,7 @@ class ReportsPage extends StatelessWidget {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              pageController.jumpToPage(0); // Navigate back to HomePage
+              widget.pageController.jumpToPage(0); // Navigate back to HomePage
             },
           ),
           title: Text(
@@ -28,55 +71,53 @@ class ReportsPage extends StatelessWidget {
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search',
-                    prefixIcon: Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.filter_list),
-                      onPressed: () {
-                        // Implement filter logic
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(25.0),
-                      borderSide: BorderSide(),
-                    ),
+          child: FutureBuilder<List<Report>>(
+            future: futureReports,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No reports found'));
+              } else {
+                List<Report> reports = snapshot.data!;
+                // Store reports locally
+                _reports = reports;
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search',
+                          prefixIcon: Icon(Icons.search),
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.filter_list),
+                            onPressed: () {
+                              // Implement filter logic
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25.0),
+                            borderSide: BorderSide(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      _buildReportCategory(context, 'Reports', _reports),
+                    ],
                   ),
-                ),
-                SizedBox(height: 20),
-                    _buildReportCategory(context, 'Blood', [
-                  {'title': 'Thyroid Test', 'date': '17th Aug 2024', 'isVisible': true},
-                  {'title': 'Blood Pressure Checkup', 'date': '20th Aug 2024', 'isVisible': false},
-                  {'title': 'Hemoglobin Test', 'date': '22nd Aug 2024', 'isVisible': true},
-                  {'title': 'Cholesterol Screening', 'date': '25th Aug 2024', 'isVisible': false},
-                  {'title': 'Glucose Test', 'date': '28th Aug 2024', 'isVisible': true},
-                  {'title': 'Complete Blood Count', 'date': '1st Sep 2024', 'isVisible': false},
-                  {'title': 'Iron Levels Check', 'date': '5th Sep 2024', 'isVisible': true},
-                ]),
-                SizedBox(height: 20),
-                _buildReportCategory(context, 'Hydrology', [
-                  {'title': 'Water Quality Test', 'date': '10th Sep 2024', 'isVisible': true},
-                  {'title': 'Groundwater Analysis', 'date': '12th Sep 2024', 'isVisible': false},
-                  {'title': 'Water Usage Report', 'date': '15th Sep 2024', 'isVisible': true},
-                  {'title': 'Flood Risk Assessment', 'date': '18th Sep 2024', 'isVisible': false},
-                  {'title': 'Hydrological Survey', 'date': '20th Sep 2024', 'isVisible': true},
-                  {'title': 'Rainwater Harvesting Audit', 'date': '22nd Sep 2024', 'isVisible': false},
-                  {'title': 'Watershed Management Plan', 'date': '25th Sep 2024', 'isVisible': true},
-                ]),
-              ],
-            ),
+                );
+              }
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildReportCategory(BuildContext context, String category, List<Map<String, dynamic>> reports) {
+  Widget _buildReportCategory(BuildContext context, String category, List<Report> reports) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -97,9 +138,10 @@ class ReportsPage extends StatelessWidget {
             return _buildReportListItem(
               context,
               icon: Icons.description,
-              title: reports[index]['title'],
-              date: reports[index]['date'],
-              isVisible: reports[index]['isVisible'],
+              title: reports[index].title,
+              date: reports[index].reportCreatedDate,
+              isVisible: reports[index].isVisible,
+              reportId: reports[index].id,
             );
           },
         ),
@@ -111,7 +153,8 @@ class ReportsPage extends StatelessWidget {
       {required IconData icon,
       required String title,
       required String date,
-      required bool isVisible}) {
+      required bool isVisible,
+      required int reportId}) {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
@@ -122,9 +165,11 @@ class ReportsPage extends StatelessWidget {
           color: Colors.black,
         ),
         onPressed: () {
-          // Toggle visibility logic
+          _toggleVisibility(reportId);
         },
       ),
     );
   }
 }
+
+

@@ -1,11 +1,14 @@
+// home_page.dart
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:health_manager/appointments_page.dart';
 import 'package:health_manager/more_page.dart';
 import 'package:health_manager/prescriptions_page.dart';
 import 'package:health_manager/reports_page.dart';
-import 'package:health_manager/widgets/doctor_list_item.dart';
+import 'package:health_manager/time_slots_page.dart';
+import 'package:health_manager/upload_docs_page.dart';
 import 'package:health_manager/widgets/health_file_card.dart';
+import 'package:health_manager/widgets/select_category.dart'; // Correct import
 
 class BottomNavItem {
   String? iconPath;
@@ -70,138 +73,65 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _showUploadModal(BuildContext context) {
+  void _showUploadOptionsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.4,
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Upload Your Documents',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildUploadItem(context, Icons.article, 'Report', () {
-                    _showUploadReportModal(context);
-                  }),
-                  _buildUploadItem(context, Icons.description, 'Prescription', () {
-                    _showUploadPrescriptionModal(context);
-                  }),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showUploadReportModal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.article, color: Colors.deepPurple),
-              SizedBox(width: 8),
-              Text('Upload Report'),
-            ],
-          ),
-          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  _pickFile();
+              ListTile(
+                leading: Icon(Icons.article, color: Colors.deepPurple),
+                title: Text('Upload Report'),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  _navigateToCategorySelectionPage(context);
                 },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.deepPurple,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  textStyle: TextStyle(fontSize: 18),
-                ),
-                child: Text('Browse'),
+              ),
+              ListTile(
+                leading: Icon(Icons.description, color: Colors.deepPurple),
+                title: Text('Upload Prescription'),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  _navigateToUploadDocumentsPage(context, null);
+                },
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Close'),
-            ),
-          ],
         );
       },
     );
   }
 
-  void _showUploadPrescriptionModal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.description, color: Colors.deepPurple),
-              SizedBox(width: 8),
-              Text('Upload Prescription'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  _pickFile();
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.deepPurple,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  textStyle: TextStyle(fontSize: 18),
+  void _navigateToCategorySelectionPage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategorySelectionPage(
+          onCategorySelected: (categoryId) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UploadDocumentsPage(
+                  selectedCategoryId: categoryId, // Pass as int
                 ),
-                child: Text('Browse'),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Close'),
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 
-  Widget _buildUploadItem(BuildContext context, IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Color(0xFF6C5DD4),
-            child: Icon(icon, color: Colors.white, size: 30),
-          ),
-          SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 16)),
-        ],
+  void _navigateToUploadDocumentsPage(BuildContext context, int? categoryId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UploadDocumentsPage(
+          selectedCategoryId: categoryId ?? -1, // Provide a default value if null
+        ),
       ),
     );
   }
@@ -333,15 +263,12 @@ class _HomePageState extends State<HomePage> {
           child: InkWell(
             splashColor: Colors.white,
             onTap: () {
-              _showUploadModal(context);
+              _showUploadOptionsModal(context);
             },
             child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.15,
-              height: MediaQuery.of(context).size.width * 0.15,
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
+              width: 56,
+              height: 56,
+              child: Icon(Icons.add, color: Colors.white),
             ),
           ),
         ),
