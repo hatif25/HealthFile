@@ -1,16 +1,40 @@
-# health_manager
+# HealthFile
 
-A new Flutter project.
+HealthFile is a medical record management system designed to help users track their medical history and organize records digitally. The aim is to assist doctors with faster and more accurate diagnoses by providing easy access to a patient's medical history from anywhere, reducing the chance of misdiagnosis. 
+
+## Features
+
+- **Medical History Tracking**: Store and manage personal health records.
+- **Report Uploads**: Upload and categorize medical reports.
+- **API-Driven**: Backend APIs for managing categories, reports, and users.
+- **Document Analysis** (Future Feature): AI-based analysis of medical reports to provide insights and suggestions for doctors.
+  
+## Technology Stack
+
+- **Frontend**: Flutter (Cross-platform mobile application)
+- **Backend**: Python (FastAPI)
+- **Database**: PostgreSQL
+- **Other**: 
+  - SharedPreferences for token storage
+  - Machine Learning models (future feature)
+  
+## Screenshots
+
+Add some screenshots here to show your app's UI and key features.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+To get a copy of this project up and running on your local machine, follow these steps.
 
-A few resources to get you started if this is your first Flutter project:
+### Prerequisites
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Flutter** installed on your machine ([Flutter installation guide](https://flutter.dev/docs/get-started/install)).
+- **Python 3.x** with **FastAPI** for backend ([FastAPI installation guide](https://fastapi.tiangolo.com/)).
+- **PostgreSQL** database installed and running ([PostgreSQL installation guide](https://www.postgresql.org/download/)).
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/healthfile.git
+   cd healthfile
