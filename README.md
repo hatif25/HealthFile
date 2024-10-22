@@ -18,9 +18,6 @@ HealthFile is a medical record management system designed to help users track th
   - SharedPreferences for token storage
   - Machine Learning models (future feature)
   
-## Screenshots
-
-Add some screenshots here to show your app's UI and key features.
 
 ## Getting Started
 
